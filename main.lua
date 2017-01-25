@@ -5,9 +5,21 @@ local bricks = require "bricks"
 local walls = require "walls"
 local collisions = require "collisions"
 local levels = require "levels"
+local game = require "game"
+local nanogui = require "nanogui/nanogui"
 
 local gamestate = "menu"
 
+function start_game()
+  game.score = 0
+  game.lives = 3
+  levels.current = 0
+  switch_to_next_level(bricks, levels)
+  ball.reposition()
+  gamestate = "menu"
+end
+
+local slider_val = 0
 
 function switch_to_next_level(bricks, levels)
   if bricks.no_more_bricks then
@@ -22,6 +34,13 @@ function switch_to_next_level(bricks, levels)
     end
   end
   return false
+end
+
+function draw_score_lives()
+  love.graphics.setColor(222,238,214)
+  love.graphics.print("score: "..game.score, 10, 10)
+
+  love.graphics.print("lives: "..game.lives, 90, 10)
 end
 
 --Love callbacks
@@ -46,10 +65,7 @@ function love.keyreleased(key, code)
     end
   elseif gamestate == "gamefinished" then
     if key == "return" then
-      levels.current = 0
-      switch_to_next_level(bricks, levels)
-      ball.reposition()
-      gamestate = "game"
+      start_game()
     elseif key == "escape" then
       love.event.quit()
     end
@@ -57,8 +73,12 @@ function love.keyreleased(key, code)
 end
 
 function love.update(dt)
+  nanogui.pre()
 
   if gamestate == "menu" then
+    nanogui.button("btn1", "Hey", 80, 80, 150, 40)
+    nanogui.button("btn2", "Press Me", 260, 80, 150, 40)
+    _, slider_val = nanogui.slider("sld1", slider_val, 0, 10, 80, 150, 256, 32)
   elseif gamestate == "game" then
     ball.update(dt)
     platform.update(dt)
@@ -76,13 +96,14 @@ function love.update(dt)
 
   end
 
-  
+  nanogui.after()
 end
 
 function love.draw()
   love.graphics.setBackgroundColor(78, 74, 78)
   love.graphics.setColor(222,238,214)
-  love.graphics.print("fps: "..tostring(love.timer.getFPS( )), 10, 10)
+  love.graphics.print("fps: "..tostring(love.timer.getFPS( )), love.graphics.getWidth() - 55, 10)
+  draw_score_lives()
   
   if gamestate == "menu" then
     love.graphics.setColor(222,238,214)
@@ -104,11 +125,16 @@ function love.draw()
     love.graphics.printf("Congrats!\n You have completed the game!\n Press Enter to continue or Esc to quit",
                           250, 250, 300, "center")
   end
+
+  nanogui.draw()
 end
 
 function love.load()
-  switch_to_next_level(bricks, levels)
+  nanogui.init()
+
+  collisions.on_brick_hit = game.set_score
   walls.construct_walls()
+  start_game() 
 end
 
 function love.quit()

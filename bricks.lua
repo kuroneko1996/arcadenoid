@@ -13,6 +13,9 @@ bricks.tileset_width = 256
 bricks.tileset_height = 16
 bricks.bricks = {}
 
+local simple_brick_sound = love.audio.newSource("assets/audio/simple_brick.wav", "static")
+local metal_brick_sound = love.audio.newSource("assets/audio/metal_brick.wav", "static")
+
 function bricks.construct_level(level_table)
   bricks.no_more_bricks = false
 
@@ -56,12 +59,21 @@ function bricks.new_brick(x, y, brick_type, width, height)
 end
 
 function bricks.hit_by_ball(i, brick, shift_ball_x, shift_ball_y)
+  if brick.brick_type == 7 or brick.brick_type == 8 then
+    --metal_brick_sound:setPitch(1+math.random() / 10)
+    metal_brick_sound:play()
+  else
+    simple_brick_sound:setPitch(1+math.random() / 10)
+    simple_brick_sound:play()
+  end
+
   if brick.brick_type ~= 8 then
     brick.hp = brick.hp - 1
     if brick.hp <= 0 then
       table.remove(bricks.bricks, i)
     end
   end
+  return brick.brick_type
 end
 
 function bricks.draw_brick(brick)

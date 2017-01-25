@@ -1,4 +1,7 @@
 local collisions = {}
+collisions.on_brick_hit = nil
+
+local ball_platform_sound = love.audio.newSource("assets/audio/ball_platform.wav", "static")
 
 --Collisions
 function collisions.rectangle_overlap(a, b)
@@ -29,6 +32,7 @@ function collisions.ball_platform_collision(ball, platform)
   if overlap then
     --print("ball-platform")
     ball.rebound(shift_x, shift_y)
+    ball_platform_sound:play()
   end
 end
 
@@ -40,7 +44,10 @@ function collisions.ball_bricks_collision(ball, bricks)
     if overlap then
       --print("ball-brick")
       ball.rebound(shift_x, shift_y)
-      bricks.hit_by_ball(i, brick, shift_x, shift_y)
+      local val = bricks.hit_by_ball(i, brick, shift_x, shift_y)
+      if collisions.on_brick_hit then
+        collisions.on_brick_hit(val)
+      end
     end
   end
 end
