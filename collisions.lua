@@ -1,9 +1,5 @@
 local collisions = {}
 
-
-
-
-
 --Collisions
 function collisions.rectangle_overlap(a, b)
   local overlap = false

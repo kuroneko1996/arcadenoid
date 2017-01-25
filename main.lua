@@ -11,6 +11,7 @@ local gamestate = "menu"
 
 function switch_to_next_level(bricks, levels)
   if bricks.no_more_bricks then
+    bricks.clear_level_bricks()
     if levels.current < #levels.sequence then
       levels.current = levels.current + 1
       local level_table = levels.require_current_level()

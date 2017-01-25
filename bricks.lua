@@ -41,17 +41,27 @@ function bricks.brick_type_to_quad(brick_type)
 end
 
 function bricks.new_brick(x, y, brick_type, width, height)
+  local hp = 1
+  if brick_type == 7 then
+    hp = 2 -- TODO change by level
+  end
   return ({
             x = x,
             y = y,
             brick_type = brick_type,
+            hp = hp,
             quad = bricks.brick_type_to_quad(brick_type),
             width = width or bricks.default_width,
             height = height or bricks.default_heigth })
 end
 
 function bricks.hit_by_ball(i, brick, shift_ball_x, shift_ball_y)
-  table.remove(bricks.bricks, i)
+  if brick.brick_type ~= 8 then
+    brick.hp = brick.hp - 1
+    if brick.hp <= 0 then
+      table.remove(bricks.bricks, i)
+    end
+  end
 end
 
 function bricks.draw_brick(brick)
@@ -71,12 +81,15 @@ function bricks.draw()
 end
 
 function bricks.update(dt)
-  if #bricks.bricks == 0 then
-    bricks.no_more_bricks = true
-  else
-    for _, brick in pairs(bricks.bricks) do
-      bricks.update_brick(brick)
+  local bricks_left = 0
+  for _, brick in pairs(bricks.bricks) do
+    bricks.update_brick(brick)
+    if brick.brick_type ~= 8 then
+      bricks_left = bricks_left + 1
     end
+  end
+  if bricks_left == 0 then
+    bricks.no_more_bricks = true
   end
 end
 
