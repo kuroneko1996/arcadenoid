@@ -44,4 +44,7 @@ function game.load_data()
   end
 end
 
+function game.play_sfx()
+end
+
 return game

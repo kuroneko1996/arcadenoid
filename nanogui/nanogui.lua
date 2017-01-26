@@ -5,6 +5,12 @@ local uistate = {
 
   hotitem = 0,
   activeitem = 0,
+
+  --keyboard stuff
+  kbditem = 0,
+  keyentered = 0,
+  keyshift = false,
+  lastwidget = 0,
 }
 
 local colors = require "nanogui/palettes/db16"
@@ -20,10 +26,13 @@ end
 function nanogui.draw()
   for k, v in pairs(draw_elements) do
     v()
-  end 
+  end
+
+  --love.graphics.print("kbditem="..uistate.kbditem..", lastwidget="..uistate.lastwidget..", keyentered="..uistate.keyentered..
+  --  ", keyshift="..tostring(uistate.keyshift))
 end
 
-function nanogui.pre()
+function nanogui.pre(joystick)
   uistate.mousex = love.mouse.getX()
   uistate.mousey = love.mouse.getY()
 
@@ -46,8 +55,55 @@ function nanogui.after()
   end
 end
 
+function nanogui.change_page()
+  uistate.kbditem = 0
+  uistate.lastwidget = 0
+  uistate.keyentered = 0
+  uistate.keyshift = false
+end
+
+function nanogui.keypressed(key, isrepeat)
+  uistate.keyentered = key
+  uistate.keyshift = love.keyboard.isDown("lshift", "rshift")
+end
+
+function nanogui.gamepadpressed(joystick, button)
+    if button == "dpleft" then
+      uistate.keyentered = "left" 
+    elseif button == "dpright" then
+      uistate.keyentered = "right"
+    elseif button == "dpdown" then
+      uistate.keyentered = "down"
+    elseif button == "dpup" then
+      uistate.keyentered = "up"
+    end
+    if button == "a" then
+      uistate.keyentered = "return"
+    end
+    if button == "b" then
+      --uistate.keyentered = "escape"
+    end
+end
+
 function nanogui.regionhit(x, y, w, h)
   return(not(uistate.mousex < x or uistate.mousey < y or uistate.mousex >= x + w or uistate.mousey >= y + h))
+end
+
+function nanogui.focus_change()
+  if uistate.keyentered == "tab" or uistate.keyentered == "down" then --lose focus
+    uistate.kbditem = 0
+    uistate.keyentered = 0
+    if uistate.keyshift then --move back
+      uistate.kbditem = uistate.lastwidget
+    end
+    return true
+  elseif uistate.keyentered == "up" then -- move back
+    uistate.keyentered = 0
+    uistate.kbditem = uistate.lastwidget
+    return true
+  end
+
+  return false
 end
 
 function nanogui.label(id, text, x, y, color)
@@ -71,6 +127,11 @@ function nanogui.button(id, text, x, y, w, h)
       --print("clicked")
       uistate.activeitem = id
     end
+  end
+
+  --keyboard focus
+  if uistate.kbditem == 0 then --get focus
+    uistate.kbditem = id
   end
 
   if draw_elements[id] == nil then
@@ -97,13 +158,30 @@ function nanogui.button(id, text, x, y, w, h)
         love.graphics.rectangle("fill", xpos, ypos, w, h)
       end
 
+      --text
       love.graphics.setColor(colors[16])
       love.graphics.printf(text, xpos, ypos + h / 2 - 8, w, "center")
-    end
 
+      if uistate.kbditem == id then --show keyboard focus
+        love.graphics.setColor(colors[7])
+        love.graphics.rectangle("line", xpos-4, ypos-4, w + 8, h + 8)
+      end
+    end
     draw_elements[id] = draw
   end
 
+  --focus keys
+  if uistate.kbditem == id then
+    if not(nanogui.focus_change()) then
+      if uistate.keyentered == "return" then
+        uistate.keyentered = 0
+        return true
+      end
+    end
+  end
+  uistate.lastwidget = id
+
+  --return
   if uistate.mousedown == 0 and uistate.hotitem and uistate.activeitem == id then
     return true
   end
@@ -115,11 +193,18 @@ function nanogui.slider(id, value, min, max, x, y, w, h, handler_size)
   h = h or 32
   local handler_size = handler_size or 16
   local xpos = ((w-handler_size) * value) / max
+  local step = max / 10
+
   if nanogui.regionhit(x, y, w + handler_size, h) then
     uistate.hotitem = id
     if uistate.activeitem == 0 and uistate.mousedown == 1 then
       uistate.activeitem = id
     end
+  end
+
+  --keyboard focus
+  if uistate.kbditem == 0 then --get focus
+    uistate.kbditem = id
   end
 
   if draw_elements[id] == nil then
@@ -134,10 +219,17 @@ function nanogui.slider(id, value, min, max, x, y, w, h, handler_size)
         love.graphics.setColor(colors[3])
         love.graphics.rectangle("fill", x + 8 + xpos, y + 8, handler_size, handler_size)
       end
+
+      if uistate.kbditem == id then --show keyboard focus
+        love.graphics.setColor(colors[7])
+        love.graphics.rectangle("line", x-4, y-4, w + handler_size + 8, h + 8)
+      end
     end
     draw_elements[id] = draw
   end
 
+  local new_value = value
+  -- mouse
   if uistate.activeitem == id then
     local mouseposx = uistate.mousex - (x + 8)
     if mouseposx < 0 then
@@ -145,14 +237,40 @@ function nanogui.slider(id, value, min, max, x, y, w, h, handler_size)
     elseif mouseposx > w then
       mouseposx = w
     end
-    local new_value = (mouseposx * max) / w
-    --print(new_value)
-    if new_value ~= value then
-      return 1, new_value
+    new_value = (mouseposx * max) / w
+  end
+
+  -- keyboard
+  if uistate.kbditem == id then
+    if not(nanogui.focus_change()) then
+      if uistate.keyentered == "left" then
+        if value > 0 then
+          new_value = value - step
+        end
+        uistate.keyentered = 0
+      elseif uistate.keyentered == "right" then
+        if value < max then
+          new_value = value + step
+        end
+        uistate.keyentered = 0
+      end
     end
   end
 
-  return 0, value 
+  uistate.lastwidget = id
+
+  --print(new_value)
+  if new_value > max then
+    new_value = max
+  elseif new_value < min then
+    new_value = min
+  end
+
+  if new_value ~= value then
+    return 1, new_value
+  else
+    return 0, value
+  end
 end
 
 return nanogui
