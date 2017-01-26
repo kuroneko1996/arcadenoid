@@ -156,7 +156,7 @@ function love.update(dt)
     end
   elseif gamestate == "game" then
     ball.update(dt)
-    platform.update(dt)
+    platform.update(dt, joystick)
     bricks.update(dt)
     walls.update(dt)
 

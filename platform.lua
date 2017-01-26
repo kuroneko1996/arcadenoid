@@ -14,12 +14,19 @@ function platform.draw()
   --love.graphics.rectangle('fill', platform.x, platform.y, platform.width, platform.height)
 end
 
-function platform.update(dt)
+function platform.update(dt, joystick)
   if love.keyboard.isDown("right") then
     platform.x = platform.x + platform.hspd * dt
   end
   if love.keyboard.isDown("left") then
     platform.x = platform.x - platform.hspd * dt
+  end
+
+  if joystick ~= nil then
+    local xdir = joystick:getGamepadAxis( "leftx" )
+    if math.abs(xdir) > 0.2 then -- TODO deadzone
+      platform.x = platform.x + xdir * platform.hspd * dt
+    end
   end
 end
 
