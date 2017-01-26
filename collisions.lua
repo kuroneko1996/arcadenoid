@@ -37,7 +37,7 @@ function collisions.ball_platform_collision(ball, platform)
 end
 
 function collisions.ball_bricks_collision(ball, bricks)
-  local b = {x=ball.x-ball.radius, y=ball.y-ball.radius,width=2*ball.radius,height=2*ball.radius}
+  local b = {x=ball.x, y=ball.y,width=2*ball.radius,height=2*ball.radius}
   for i, brick in pairs(bricks.bricks) do
     local a = {x=brick.x, y=brick.y,width=brick.width,height=brick.height}
     local overlap, shift_x, shift_y = collisions.rectangle_overlap(a, b)
@@ -53,7 +53,7 @@ function collisions.ball_bricks_collision(ball, bricks)
 end
 
 function collisions.ball_walls_collision(ball, walls)
-  local b = {x=ball.x-ball.radius, y=ball.y-ball.radius,width=2*ball.radius,height=2*ball.radius}
+  local b = {x=ball.x, y=ball.y,width=2*ball.radius,height=2*ball.radius}
   for i, wall in pairs(walls.walls) do
     local a = {x=wall.x, y=wall.y,width=wall.width,height=wall.height}
     local overlap, shift_x, shift_y = collisions.rectangle_overlap(a, b)

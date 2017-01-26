@@ -47,9 +47,13 @@ end
 
 function draw_score_lives()
   love.graphics.setColor(222,238,214)
-  love.graphics.print("score: "..game.score, 10, 10)
-
-  love.graphics.print("lives: "..game.lives, 90, 10)
+  local xpos = 10
+  local ypos = 10
+  love.graphics.print("score: "..game.score, xpos, ypos)
+  xpos = xpos + 80
+  love.graphics.print("high score: "..game.highscore, xpos, ypos)
+  xpos = xpos + 120
+  love.graphics.print("lives: "..game.lives, xpos, ypos)
 end
 
 --Love callbacks
@@ -60,6 +64,7 @@ function love.keyreleased(key, code)
     end
   elseif gamestate == "options" then
     if key == "escape" then
+      game.save_data()
       gamestate = "menu"
     end
   elseif gamestate == "gamepaused" then
@@ -109,6 +114,7 @@ function love.update(dt)
     local xpos = love.graphics.getWidth() / 2 - 272 / 2
     local ypos = gui_posy
     if nanogui.button("btn_opt_back", "Back", xpos, ypos, 150, 40) then
+      game.save_data()
       gamestate = "menu"
     end
     ypos = ypos + 40 + 32
@@ -172,6 +178,8 @@ function love.draw()
 end
 
 function love.load()
+  game.load_data()
+
   gui_posx = love.graphics.getWidth() / 2 - gui_width / 2
   gui_posy = love.graphics.getHeight() / 2 - gui_heigth / 2 
 
@@ -183,5 +191,6 @@ function love.load()
 end
 
 function love.quit()
+  game.save_data()
   --print("Thanks for playing")
 end
