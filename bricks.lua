@@ -71,6 +71,11 @@ function bricks.hit_by_ball(i, brick, shift_ball_x, shift_ball_y)
     brick.hp = brick.hp - 1
     if brick.hp <= 0 then
       table.remove(bricks.bricks, i)
+      
+      local random_number = math.random()
+      if random_number > 0.5 then
+        bricks.spawn_bonus(brick.x, brick.y, random_number)
+      end
     end
   end
   return brick.brick_type

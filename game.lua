@@ -1,3 +1,5 @@
+local Animation = require "animation"
+
 local game = {}
 game.highscore = 0
 game.score = 0
@@ -13,7 +15,7 @@ local save_fields = {"highscore", "sfx_volume", "music_volume"}
 function game.load_assets()
   game.lives_image = love.graphics.newImage("assets/lives.png")
 
-  game.load_spritesheet("bonus_laser", 32, 32)
+  game.load_spritesheet("bonus_laser", 28, 12)
 end
 
 function game.load_spritesheet(name, width, height)
@@ -32,42 +34,22 @@ function game.load_spritesheet(name, width, height)
     table.insert(sheet.frames, 
                  love.graphics.newQuad((i-1)*sheet.frame_width, 0, sheet.frame_width, sheet.frame_height, image_width, image_height))
   end
-end
+end  
 
 function game.update_animations(dt)
-  for k, anim in pairs(game.animations) do
-    anim.elapsed = anim.elapsed + dt
-    if anim.elapsed >= 0.1 then
-      anim.elapsed = anim.elapsed - 0.1
-      if anim.frame == anim.max_frame then
-        anim.frame = 1
-      else
-        anim.frame = anim.frame + 1
-      end
-    end
+  for anim, k in pairs(game.animations) do
+    anim:update(dt)
   end
 end
 
-function game.draw_animation(idx, x, y)
-  if game.animations[idx] == nil then
-    game.add_animation(idx, idx)
-  end
-  local animation = game.animations[idx]
-  local spritesheet = animation.spritesheet
-  if spritesheet.frames[animation.frame] ~= nil then
-    love.graphics.draw(spritesheet.image, spritesheet.frames[animation.frame], x, y)
-  end
+function game.draw_animation(anim, x, y)
+  game.animations[anim]:draw(x, y)
 end
 
-function game.add_animation(idx, sprite_name)
-  local animation = {
-    sprite_name=sprite_name,
-    frame=0,
-    max_frame=game.spritesheets[sprite_name].frames_number,
-    elapsed=0,
-    spritesheet=game.spritesheets[sprite_name],
-  }
-  game.animations[idx] = animation
+function game.add_animation(name, duration)
+  local anim = Animation.new(game.spritesheets[name].image, game.spritesheets[name].frames, duration)
+  --game.animations[anim] = 1
+  return anim
 end
 
 function game.set_score(brick_type)

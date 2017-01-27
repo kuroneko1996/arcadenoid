@@ -77,11 +77,24 @@ function collisions.platform_walls_collision(platform, walls)
   end
 end
 
-function collisions.resolve(platform, ball, bricks, walls)
+function collisions.platform_bonuses_collision(platform, bonuses)
+  local b = {x=platform.x, y=platform.y,width=platform.width,height=platform.height}
+  for i, bonus in pairs(bonuses.bonuses) do
+    local a = {x=bonus.x, y=bonus.y,width=bonus.width,height=bonus.height}
+    local overlap, shift_x, shift_y = collisions.rectangle_overlap(a, b)
+    if overlap then
+      bonus.on_platform_hit(platform)
+      bonuses.bonuses[i] = nil
+    end
+  end
+end
+
+function collisions.resolve(platform, ball, bricks, walls, bonuses)
   collisions.ball_platform_collision(ball, platform)
   collisions.ball_walls_collision(ball, walls)
   collisions.ball_bricks_collision(ball, bricks)
   collisions.platform_walls_collision(platform, walls)
+  collisions.platform_bonuses_collision(platform, bonuses)
 end
 
 return collisions

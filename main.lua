@@ -5,8 +5,11 @@ local bricks = require "bricks"
 local walls = require "walls"
 local collisions = require "collisions"
 local levels = require "levels"
+local bonuses = require "bonuses"
 local game = require "game"
 local nanogui = require "nanogui/nanogui"
+
+local Animation = require "animation"
 
 local gamestate = "menu"
 
@@ -18,19 +21,31 @@ local joystick = nil
 
 local t = 0
 
-function start_game(state)
+function start_game()
   game.score = 0
   game.lives = 3
   levels.current = 1
   start_level(bricks)
   ball.reposition()
-  gamestate = state
+  gamestate = "game"
+end
+
+function add_bonus(bonus_type, x, y)
+  local bonus = bonuses.create(bonus_type, x, y)
+  bonus.animation = game.add_animation(bonus.sprite)
+  table.insert(bonuses.bonuses, bonus)
+end
+
+function spawn_bonus(x, y, random_number)
+  add_bonus("laser", x, y)
 end
 
 function start_level(bricks)
   bricks.clear_level_bricks()
   local level_table = levels.require_current_level()
   bricks.construct_level(level_table)
+  
+  --add_bonus("laser", 20, 50)
 end
 
 function switch_to_next_level(bricks, levels)
@@ -63,8 +78,6 @@ function draw_score_lives()
     xpos = xpos + (lives_width+4) * (l-1)
     love.graphics.draw(game.lives_image, xpos, ypos + lives_height / 2)
   end
-
-  game.draw_animation("bonus_laser", 20, 50 + t % 400)
 end
 
 function handle_input(key, jbutton)
@@ -92,7 +105,7 @@ function handle_input(key, jbutton)
     end
   elseif gamestate == "gamefinished" then
     if key == "return" or jbutton == "a" or jbutton == "start" then
-      start_game("menu")
+      change_state("menu")
     elseif key == "escape" or jbutton == "b" then
       love.event.quit()
     end
@@ -147,7 +160,7 @@ function love.update(dt)
 
     -- game is restarting
     if gamestate == "game" then
-      start_game("game")
+      start_game()
     end
   elseif gamestate == "options" then
     local xpos = love.graphics.getWidth() / 2 - 272 / 2
@@ -172,8 +185,9 @@ function love.update(dt)
     platform.update(dt, joystick)
     bricks.update(dt)
     walls.update(dt)
+    bonuses.update(dt)
 
-    collisions.resolve(platform, ball, bricks, walls)
+    collisions.resolve(platform, ball, bricks, walls, bonuses)
 
     if switch_to_next_level(bricks, levels) then
       ball.reposition()
@@ -205,6 +219,7 @@ function love.draw()
     platform.draw()
     bricks.draw()
     walls.draw()
+    bonuses.draw()
     draw_score_lives()
   elseif gamestate == "gamefinished" then
     love.graphics.setColor(222,238,214)
@@ -216,21 +231,24 @@ function love.draw()
   nanogui.draw()
 end
 
-function love.load()
+function love.load(arg)
+  if arg[#arg] == "-debug" then require("mobdebug").start() end
+  
   local joysticks = love.joystick.getJoysticks()
   joystick = joysticks[1]
 
   game.load_assets()
   game.load_data()
-
+  
   gui_posx = love.graphics.getWidth() / 2 - gui_width / 2
   gui_posy = love.graphics.getHeight() / 2 - gui_heigth / 2 
 
   nanogui.init()
 
   collisions.on_brick_hit = game.set_score
+  bricks.spawn_bonus = spawn_bonus
   walls.construct_walls()
-  start_game("menu") 
+  change_state("menu") 
 end
 
 function love.quit()
