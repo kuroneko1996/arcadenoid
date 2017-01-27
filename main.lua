@@ -16,6 +16,8 @@ local gui_posx = 0
 local gui_posy = 0
 local joystick = nil
 
+local t = 0
+
 function start_game(state)
   game.score = 0
   game.lives = 3
@@ -54,7 +56,15 @@ function draw_score_lives()
   xpos = xpos + 80
   love.graphics.print("high score: "..game.highscore, xpos, ypos)
   xpos = xpos + 120
-  love.graphics.print("lives: "..game.lives, xpos, ypos)
+  
+  local lives_width = 32
+  local lives_height = 10
+  for l = 1, game.lives do
+    xpos = xpos + (lives_width+4) * (l-1)
+    love.graphics.draw(game.lives_image, xpos, ypos + lives_height / 2)
+  end
+
+  game.draw_animation("bonus_laser", 20, 50 + t % 400)
 end
 
 function handle_input(key, jbutton)
@@ -114,7 +124,10 @@ function love.gamepadpressed(joystick, button)
 end
 
 function love.update(dt)
+  t = t + 1
   nanogui.pre(joystick)
+  game.update_animations(dt)
+
   if gamestate == "menu" then
     local xpos = love.graphics.getWidth() / 2 - 150 / 2
     local ypos = gui_posy
@@ -207,6 +220,7 @@ function love.load()
   local joysticks = love.joystick.getJoysticks()
   joystick = joysticks[1]
 
+  game.load_assets()
   game.load_data()
 
   gui_posx = love.graphics.getWidth() / 2 - gui_width / 2
