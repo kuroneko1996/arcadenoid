@@ -14,7 +14,7 @@ local Animation = require "animation"
 local gamestate = "menu"
 
 local gui_width = 300
-local gui_heigth = 300
+local gui_height = 300
 local gui_posx = 0
 local gui_posy = 0
 local joystick = nil
@@ -37,7 +37,11 @@ function add_bonus(bonus_type, x, y)
 end
 
 function spawn_bonus(x, y, random_number)
-  add_bonus("laser", x, y)
+  if random_number > 0.9 then
+    add_bonus("laser", x, y)
+  else
+    add_bonus("life", x, y)
+  end
 end
 
 function start_level(bricks)
@@ -75,7 +79,7 @@ function draw_score_lives()
   local lives_width = 32
   local lives_height = 10
   for l = 1, game.lives do
-    xpos = xpos + (lives_width+4) * (l-1)
+    xpos = xpos + 35
     love.graphics.draw(game.lives_image, xpos, ypos + lives_height / 2)
   end
 end
@@ -187,7 +191,7 @@ function love.update(dt)
     walls.update(dt)
     bonuses.update(dt)
 
-    collisions.resolve(platform, ball, bricks, walls, bonuses)
+    collisions.update(platform, ball, bricks, walls, bonuses, game)
 
     if switch_to_next_level(bricks, levels) then
       ball.reposition()
@@ -241,7 +245,7 @@ function love.load(arg)
   game.load_data()
   
   gui_posx = love.graphics.getWidth() / 2 - gui_width / 2
-  gui_posy = love.graphics.getHeight() / 2 - gui_heigth / 2 
+  gui_posy = love.graphics.getHeight() / 2 - gui_height / 2 
 
   nanogui.init()
 

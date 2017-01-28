@@ -8,7 +8,7 @@ bricks.no_more_bricks = false
 bricks.tile_width = 32
 bricks.tile_height = 16
 bricks.default_width = bricks.tile_width
-bricks.default_heigth = bricks.tile_height
+bricks.default_height = bricks.tile_height
 bricks.tileset_width = 256
 bricks.tileset_height = 16
 bricks.bricks = {}
@@ -23,7 +23,7 @@ function bricks.construct_level(level_table)
     for col_index, brick_type in pairs(row) do
       if brick_type ~= 0 then
         local newx = bricks.top_left_x + (col_index-1)*(bricks.default_width+bricks.horizontal_distance)
-        local newy = bricks.top_left_y + (row_index-1)*(bricks.default_heigth+bricks.vertical_distance)
+        local newy = bricks.top_left_y + (row_index-1)*(bricks.default_height+bricks.vertical_distance)
         local new_brick = bricks.new_brick(newx, newy, brick_type)
         table.insert(bricks.bricks, new_brick)
       end
@@ -55,7 +55,7 @@ function bricks.new_brick(x, y, brick_type, width, height)
             hp = hp,
             quad = bricks.brick_type_to_quad(brick_type),
             width = width or bricks.default_width,
-            height = height or bricks.default_heigth })
+            height = height or bricks.default_height })
 end
 
 function bricks.hit_by_ball(i, brick, shift_ball_x, shift_ball_y)

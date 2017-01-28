@@ -7,6 +7,10 @@ game.lives = 3
 game.sfx_volume = 100
 game.music_volume = 100
 
+--constants
+game.max_lives = 5
+--
+
 game.spritesheets = {}
 game.animations = {}
 
@@ -16,6 +20,7 @@ function game.load_assets()
   game.lives_image = love.graphics.newImage("assets/lives.png")
 
   game.load_spritesheet("bonus_laser", 28, 12)
+  game.load_spritesheet("bonus_life", 28, 12)
 end
 
 function game.load_spritesheet(name, width, height)
@@ -59,6 +64,12 @@ function game.set_score(brick_type)
 
   if game.score > game.highscore then
     game.highscore = game.score
+  end
+end
+
+function game.add_life()
+  if game.lives < game.max_lives then
+    game.lives = game.lives + 1
   end
 end
 
