@@ -15,10 +15,20 @@ function platform.draw()
 end
 
 function platform.update(dt, joystick)
-  if love.keyboard.isDown("right") then
+  local dpleft = false
+  local dpright = false
+  if joystick ~= nil then
+    if joystick:isGamepadDown("dpleft") then
+      dpleft = true
+    elseif joystick:isGamepadDown("dpright") then
+      dpright = true
+    end
+  end
+  
+  if love.keyboard.isDown("right") or dpright then
     platform.x = platform.x + platform.hspd * dt
   end
-  if love.keyboard.isDown("left") then
+  if love.keyboard.isDown("left") or dpleft then
     platform.x = platform.x - platform.hspd * dt
   end
 

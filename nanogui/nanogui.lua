@@ -2,6 +2,7 @@ local uistate = {
   mousex = 0,
   mousey = 0,
   mousedown = 0,
+  jdelay = 0,
 
   hotitem = 0,
   activeitem = 0,
@@ -41,6 +42,28 @@ function nanogui.pre(joystick)
   elseif not(love.mouse.isDown(1)) then
     uistate.mousedown = 0
   end
+  
+  local time = love.timer.getTime() * 1000
+  if joystick ~= nil and uistate.jdelay < time then
+    local jx = joystick:getGamepadAxis("leftx")
+    local jy = joystick:getGamepadAxis("lefty")
+    local threshold = 0.2
+    
+    if jx > threshold then
+      uistate.keyentered = "right"
+    elseif jx < -threshold then
+      uistate.keyentered = "left"
+    elseif jy > threshold then
+      uistate.keyentered = "down"
+    elseif jy < -threshold then
+      uistate.keyentered = "up"
+    end
+    
+    if math.abs(jx) > threshold or math.abs(jy) > threshold then
+      uistate.jdelay = time + 250
+    end
+  end
+  
 
   uistate.hotitem = 0
 
